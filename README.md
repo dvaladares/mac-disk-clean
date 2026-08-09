@@ -6,6 +6,16 @@ An autonomous, agentic runbook for developers who want to clean, audit, and opti
 
 ---
 
+## 📊 Live Interactive Dashboard
+
+Every cleanup session compiles a self-contained, dark-mode **HTML Telemetry Dashboard** and automatically opens it in your default browser:
+
+<p align="center">
+  <img src="./assets/dashboard-preview.png" alt="mac-disk-clean Interactive HTML Telemetry Dashboard" width="900" style="border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);" />
+</p>
+
+---
+
 ## Why this exists
 
 Commercial Mac cleaners charge $40+/year subscriptions for basic cache purges while missing the modern cruft that actually eats developer storage:
@@ -16,6 +26,10 @@ Commercial Mac cleaners charge $40+/year subscriptions for basic cache purges wh
 - **Browser AI Models:** Hidden on-device LLM classifier weights in Chrome and Brave
 
 **mac-disk-clean** gives your AI assistant (Claude Code, Gemini, ChatGPT, Codex) a safe, systematic runbook to inspect, preview, and clean your Mac while **strictly protecting your personal data**.
+
+<p align="center">
+  <img src="./assets/claude-guide-preview.png" alt="Claude Code & Subagent Worktree Pruning Guide" width="900" style="border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);" />
+</p>
 
 ---
 
@@ -65,16 +79,6 @@ curl -sSL https://raw.githubusercontent.com/dvaladares/mac-disk-clean/main/SKILL
 5. Phase 4: Agent Audit → Scans ~/.claude/jobs/ and deep home directory storage
 6. Phase 5: Dashboard   → Automatically renders & opens an interactive HTML telemetry report
 ```
-
----
-
-## 📊 Sample Output Dashboard
-
-Every cleanup compiles a self-contained, dark-mode **HTML Telemetry Dashboard** and opens it in your default browser:
-
-- **Visual APFS Gauge:** Live before-and-after storage allocation
-- **Health Score & Metrics:** Reclaimed space, disk headroom, RAM pressure
-- **Itemized Space Breakdown:** Categorized list of all pruned artifacts
 
 ---
 
