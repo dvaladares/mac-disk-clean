@@ -41,10 +41,13 @@ Before running any deletions, confirm and protect the following directories:
 Mole (`mo`) is the official native Mac cleaner tool created by **tw93** ([GitHub: tw93/mole](https://github.com/tw93/mole) · [mole.fit](https://mole.fit)):
 
 ```bash
-# 1. Verify / Install Mole via Homebrew
+# 1. Ensure latest Mole is installed / updated via Homebrew
 if ! command -v mo &>/dev/null; then
-  echo "Installing Mole from Homebrew..."
+  echo "Installing latest Mole from Homebrew..."
   brew install mole || brew install tw93/mole/mole
+else
+  echo "Checking for latest Mole updates..."
+  brew upgrade mole 2>/dev/null || brew upgrade tw93/mole/mole 2>/dev/null || true
 fi
 
 # 2. Check initial system telemetry and record starting free space

@@ -72,7 +72,7 @@ curl -sSL https://raw.githubusercontent.com/dvaladares/mac-disk-clean/main/SKILL
 ## 📋 What the Runbook Executes
 
 ```
-1. Tooling Baseline     → Verifies / installs `tw93/mole` via Homebrew & records telemetry
+1. Tooling Baseline     → Automatically checks & grabs the latest `tw93/mole` via Homebrew & records telemetry
 2. Phase 1: Caches      → User app caches, browser AI models, service workers (`mo clean`)
 3. Phase 2: Build Trees → Inactive node_modules, .next, .venv in git repos (`mo purge`)
 4. Phase 3: Packages    → pnpm virtual store, npm, bun, uv, and Docker VM layers
