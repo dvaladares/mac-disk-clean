@@ -1,154 +1,233 @@
 ---
 name: mac-disk-clean
 description: >-
-  Systematic, safe Mac disk cleanup and telemetry runbook. Uses Mole (mo) by tw93 (https://github.com/tw93/mole)
-  to audit and clean user app caches, browser models, package manager stores, and project build artifacts.
-  Includes safety whitelists for personal data, deep analysis of agent worktrees (~/.claude/jobs),
-  and auto-generates rich HTML dashboards for visualization.
+  Safe Mac disk cleanup runbook. Uses Mole (mo) by tw93 (https://github.com/tw93/mole)
+  to audit and clean user app caches, browser models, package manager stores, and
+  project build artifacts. Includes protection rules for personal data, analysis of
+  agent worktrees (~/.claude/jobs), and a summary dashboard.
 ---
 
-# 🚀 Mac Disk Cleanup & Optimization Runbook
-> **Instructions for the AI Assistant / LLM reading this file:**
-> You are acting as an autonomous systems engineer. The user has provided this runbook to perform a safe, structured disk cleanup and optimization on this Mac.
-> Execute each phase in order, strictly enforce all data safety whitelists, and present the final results as an interactive HTML dashboard opened in the user's default browser.
+# Mac Disk Cleanup Runbook
 
----
+## Instructions for the AI assistant
 
-## 🔒 Cardinal Safety Rules (CRITICAL — NEVER VIOLATE)
+You are a systems engineer helping the user clean their Mac. Follow these rules strictly.
 
-Before running any deletions, confirm and protect the following directories:
+**Preview-first contract.** The default mode is PREVIEW ONLY. For every phase:
 
-1. **iMessage History & Attachments:**
-   - 🛑 **NEVER** delete or modify `~/Library/Messages/chat.db` or `~/Library/Messages/Attachments`.
-   - ✅ **Safe:** `~/Library/Messages/StickerCache/*` and `~/Library/Messages/Caches/Previews/*` (auto-generated preview thumbnails only).
+1. Run the dry-run or listing command first.
+2. Show the user the list of items and the estimated size.
+3. Wait for the user to say "yes" in the chat before running the deleting command.
+4. Never run a preview and a delete in the same command block.
+5. Never use `-f`, `--force`, or `-y` to skip a confirmation prompt.
+6. If the user says "just do it all", still confirm once per phase. Show the preview, state what will be deleted, and wait for "yes".
 
-2. **iCloud Drive & Cloud Sync:**
-   - 🛑 **NEVER** touch `~/Library/Mobile Documents/` or `~/Library/CloudStorage/`.
-   - All cloud-synced storage trees are strictly whitelisted and protected.
-
-3. **Photos Library:**
-   - 🛑 **NEVER** delete or modify `~/Pictures/` or `*.photoslibrary` packages.
-   - ✅ **Safe:** `Photos.cache` inside Address Book contact card icons.
-
-4. **Agentic Memory & Configurations:**
-   - 🛑 **NEVER** delete `~/.claude/projects/`, `~/.claude/skills/`, `~/.claude/plugins/`, `~/.gemini/config/`, or conversation histories.
-   - ✅ **Safe:** Completed/stale subagent worktrees inside `~/.claude/jobs/*/tmp`.
+If the user declines a phase, skip it and move on.
 
 ---
 
-## 🛠️ Step 0: Tooling & Telemetry Baseline
+## Protected data
 
-Mole (`mo`) is the official native Mac cleaner tool created by **tw93** ([GitHub: tw93/mole](https://github.com/tw93/mole) · [mole.fit](https://mole.fit)):
+Before running any deletion, confirm that the following paths are never modified or removed.
+
+| Protected data | Rule |
+|---|---|
+| iMessage history and attachments | Never delete or modify `~/Library/Messages/chat.db` or `~/Library/Messages/Attachments`. Safe to clear: `~/Library/Messages/StickerCache/*` and `~/Library/Messages/Caches/Previews/*` (auto-generated thumbnails only). |
+| iCloud Drive and cloud sync | Never touch `~/Library/Mobile Documents/` or `~/Library/CloudStorage/`. |
+| Photos library | Never delete or modify `~/Pictures/` or `*.photoslibrary` packages. |
+| Agent memories and configurations | Never delete `~/.claude/projects/`, `~/.claude/skills/`, `~/.claude/plugins/`, `~/.gemini/config/`, or conversation histories. Safe to clean: completed stale worktrees inside `~/.claude/jobs/*/tmp` (with user approval). |
+
+---
+
+## Step 0: Tooling and telemetry baseline
+
+Mole (`mo`) is a native Mac cleaner created by tw93 (https://github.com/tw93/mole, https://mole.fit). It is distributed under GPL-3.0. This runbook orchestrates Mole and adds guard rails. It is not affiliated with or endorsed by tw93.
 
 ```bash
-# 1. Ensure latest Mole is installed / updated via Homebrew
+# 1. Install or update Mole via Homebrew
 if ! command -v mo &>/dev/null; then
-  echo "Installing latest Mole from Homebrew..."
+  echo "Installing Mole from Homebrew..."
   brew install mole || brew install tw93/mole/mole
 else
-  echo "Checking for latest Mole updates..."
+  echo "Checking for Mole updates..."
   brew upgrade mole 2>/dev/null || brew upgrade tw93/mole/mole 2>/dev/null || true
 fi
 
-# 2. Check initial system telemetry and record starting free space
+# 2. Record starting disk state
 mo status
 df -h / | tail -1
 ```
 
+Record the starting free space value. You will compare it to the final value in Phase 5.
+
 ---
 
-## ⚡ Phase 1: Zero-Risk System & Application Caches
+## Phase 1: System and application caches
 
-Cleans temporary user application caches, browser on-device AI models, and thumbnail caches:
+Cleans temporary user application caches, browser on-device AI models, and thumbnail caches.
+
+**Step 1: Preview.** Run the dry-run and show the user the list.
 
 ```bash
-# 1. Preview safe cache cleanup
 mo clean --dry-run
+```
 
-# 2. Execute user-level cleanup (automatically skips sudo tasks if unprivileged)
+**Step 2: Wait for approval.** Show the user what will be removed and the estimated size. Do not proceed until the user says "yes".
+
+**Step 3: Execute.** Only after the user approves:
+
+```bash
 mo clean
 ```
 
-*Expected recovery: 15–40 GB of auto-regenerating cache data.*
+Typical recovery: 15 to 40 GB of auto-regenerating cache data. Actual results vary.
 
 ---
 
-## 📦 Phase 2: Project Build Artifact Purge
+## Phase 2: Project build artifact purge
 
-Scans active and inactive development repositories (`~/Code`, `~/dev`, `~/.claude/worktrees`, etc.) for stale build artifacts:
+Scans development repositories (`~/Code`, `~/dev`, `~/.claude/worktrees`, etc.) for stale build artifacts.
+
+**Step 1: Preview.** Run the dry-run and show the user the list.
 
 ```bash
-# 1. Preview stale build directories
 mo purge --dry-run
+```
 
-# 2. Purge stale node_modules, .next, .venv, dist, and coverage folders
+**Step 2: Wait for approval.** Show the user the directories and sizes. Do not proceed until the user says "yes".
+
+**Step 3: Execute.** Only after the user approves:
+
+```bash
 mo purge
 ```
 
-*Expected recovery: 10–30 GB across idle repositories (re-generated on demand via `npm install` / `pip install`).*
+Typical recovery: 10 to 30 GB across idle repositories. These are re-generated on demand via `npm install`, `pip install`, etc. Actual results vary.
 
 ---
 
-## 🐳 Phase 3: Package Managers & Virtual Containers
+## Phase 3: Package managers and containers
 
-Cleans global package store caches and container disk images:
+Cleans global package store caches and container layers.
+
+**Step 1: Preview package manager caches.** Show the user the estimated sizes before cleaning.
 
 ```bash
-# 1. Prune unreferenced pnpm packages
+# Check pnpm store size
+pnpm store status 2>/dev/null || true
+
+# Check npm cache size
+npm cache ls 2>/dev/null | wc -l || true
+
+# Check bun cache
+du -sh ~/.bun/install/cache 2>/dev/null || true
+
+# Check uv cache
+uv cache dir 2>/dev/null && du -sh "$(uv cache dir)" 2>/dev/null || true
+```
+
+**Step 2: Wait for approval.** Show the user the sizes and explain these are re-downloaded on demand. Do not proceed until the user says "yes".
+
+**Step 3: Execute package manager cleanup.** Only after the user approves:
+
+```bash
 pnpm store prune 2>/dev/null || true
-
-# 2. Clean npm cache
 npm cache clean --force 2>/dev/null || true
-
-# 3. Clean bun and uv caches
 bun pm cache rm 2>/dev/null || true
 uv cache clean 2>/dev/null || true
+```
 
-# 4. Prune Docker Desktop virtual machine layers (if Docker is running)
-docker system prune -a --volumes -f 2>/dev/null || true
+**Step 4: Docker (if running).** Handle Docker separately. First, show the user the current Docker disk usage.
 
-# 5. Clean stale installer DMGs / PKGs in Homebrew cache
+```bash
+docker system df 2>/dev/null || true
+docker image ls 2>/dev/null || true
+docker volume ls 2>/dev/null || true
+```
+
+Explain to the user: `docker system prune -a` removes all stopped containers, unused networks, dangling images, and build cache. It does NOT remove named volumes. The `--volumes` flag would also remove named volumes, which may contain databases and persistent application data. This runbook does not use `--volumes`.
+
+**Step 5: Wait for Docker approval.** Do not proceed until the user says "yes".
+
+**Step 6: Execute Docker cleanup.** Only after the user approves:
+
+```bash
+docker system prune -a
+```
+
+Do not add `--volumes` or `-f`. If the user wants to remove a specific volume, they must name it explicitly. Remove only the volumes the user names, one at a time:
+
+```bash
+docker volume rm <volume-name>
+```
+
+**Step 7: Homebrew installer cache.**
+
+```bash
 mo installer 2>/dev/null || true
 ```
 
 ---
 
-## 🔬 Phase 4: Deep Directory Breakdown & Agent Worktrees
+## Phase 4: Deep directory breakdown and agent worktrees
 
-Pinpoint large directories across the user's home folder:
+Identify large directories across the home folder.
+
+**Step 1: Survey.**
 
 ```bash
-# 1. Inspect top directory distribution in ~
 du -d 1 -h ~ 2>/dev/null | sort -hr | head -15
-
-# 2. Inspect Claude Code job accumulation
 du -sh ~/.claude/jobs 2>/dev/null || true
 ```
 
-### Safe Agent Cleanup Rule:
-- If `~/.claude/jobs/` exceeds 20 GB, delete completed job worktrees older than 14 days while keeping memories and project states intact:
-  ```bash
-  find ~/.claude/jobs -maxdepth 1 -mindepth 1 -type d -mtime +14 -exec rm -rf {} +
-  ```
+**Step 2: Agent worktree audit.** If `~/.claude/jobs/` is large, list candidate directories older than 14 days.
+
+```bash
+find ~/.claude/jobs -maxdepth 1 -mindepth 1 -type d -mtime +14 -print 2>/dev/null
+```
+
+Then show the size of each candidate:
+
+```bash
+# For each directory found above, run:
+du -sh <directory>
+```
+
+Present the list to the user. Explain the following:
+
+- Directory mtime reflects when the directory itself was last modified, not when files inside it were last accessed. A directory may appear stale by mtime but still contain recent work.
+- Job directories may hold unpushed code, uncommitted changes, or work in progress.
+- The user should review the list and name which directories to remove.
+
+**Step 3: Wait for the user to name specific directories.** Do not remove any directory the user has not named.
+
+**Step 4: Remove only the directories the user named.** Run one command per directory. Do not use `-f`.
+
+```bash
+rm -r <directory-the-user-named>
+```
 
 ---
 
-## 📊 Phase 5: Interactive HTML Dashboard Deliverable
+## Phase 5: Summary dashboard
 
-After completing the cleanup, measure the final disk state and compile a self-contained, styled HTML report:
+After completing the cleanup, measure the final disk state.
 
 ```bash
-# Measure final disk free space
 df -h / | tail -1
 mo status
 ```
 
-### Dashboard Requirements:
-1. **Design**: Dark theme with glassmorphism cards, glowing status badges, and Google Fonts (`Outfit`, `Inter`).
-2. **Metrics Grid**: Display **Starting Free Space**, **Final Free Space**, **Total Reclaimed Space**, and **Health Score**.
-3. **Itemized Table**: Breakdown of space saved across categories (Project artifacts, App caches, Browsers, Package stores).
-4. **Safety Confirmation**: List verified protected personal stores (iMessage `chat.db`, iCloud Drive, Photos Library).
-5. **Auto-Launch**: Save the report as `report.html` and automatically open it in the default browser:
-   ```bash
-   open report.html
-   ```
+Compile the results into a self-contained HTML report. The dashboard is a summary the assistant writes from the command outputs. The user should trust the terminal output over the dashboard if there is any discrepancy.
+
+### Dashboard contents:
+
+1. **Design:** Dark theme, clean layout. Use Google Fonts (Outfit, Inter) if desired.
+2. **Metrics grid:** Starting free space, final free space, total reclaimed space, health score.
+3. **Itemized table:** Breakdown of space saved across categories (project artifacts, app caches, browsers, package stores).
+4. **Safety confirmation:** List the verified protected personal stores (iMessage chat.db, iCloud Drive, Photos library).
+5. **Auto-launch:** Save the report as `report.html` and open it:
+
+```bash
+open report.html
+```
