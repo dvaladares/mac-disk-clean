@@ -27,18 +27,18 @@ Commercial Mac cleaners charge subscription fees for basic cache removal. They m
 - **Package manager stores.** Dangling virtual packages in pnpm, bun, uv, and npm.
 - **Browser AI models.** Hidden on-device LLM classifier weights in Chrome and Brave.
 
-This runbook gives your AI assistant (Claude Code, Gemini, ChatGPT, Codex, Antigravity) a safe, step-by-step process to inspect, preview, and clean your Mac. On my own Mac it reclaimed about 50 GB. Your result will differ.
+This runbook gives your AI assistant (Claude Code, Gemini, ChatGPT, Codex, Antigravity) a careful, step-by-step process to inspect, preview, and clean your Mac. On my own Mac it reclaimed about 50 GB. Your result will differ.
 
 ---
 
 ## What it protects
 
-The runbook enforces protection rules before any deletion.
+The runbook instructs the assistant to protect these paths before any deletion. It is prose, not code, so review every command.
 
 | Protected data | Policy |
 |---|---|
 | iMessage history and attachments | Never touched. `chat.db` and `~/Library/Messages/Attachments` are preserved. Only auto-generated link thumbnails are cleared. |
-| iCloud Drive and cloud sync | Never touched. `~/Library/Mobile Documents` and `CloudStorage` are whitelisted. |
+| iCloud Drive and cloud sync | Never touched. `~/Library/Mobile Documents` and `CloudStorage` are never touched. |
 | Photos library | Never touched. `~/Pictures` and `*.photoslibrary` are preserved. |
 | Agent memories and skills | Never touched. `~/.claude/projects`, `~/.claude/skills`, `~/.gemini/config` are preserved. |
 
@@ -73,12 +73,12 @@ curl -sSL https://raw.githubusercontent.com/dvaladares/mac-disk-clean/main/SKILL
 ## What the runbook does
 
 ```
-1. Tooling baseline    - Checks and installs Mole (mo) via Homebrew, records starting disk state.
-2. Phase 1: Caches     - User app caches, browser AI models, service workers (mo clean).
-3. Phase 2: Build trees - Inactive node_modules, .next, .venv in git repos (mo purge).
-4. Phase 3: Packages   - pnpm store, npm, bun, uv caches, and Docker layers.
-5. Phase 4: Agent audit - Scans ~/.claude/jobs/ and large home directories.
-6. Phase 5: Dashboard  - Writes a summary report from the cleanup results.
+1. Tooling baseline: checks for Mole (mo) via Homebrew, records starting disk state.
+2. Phase 1, caches: user app caches, browser AI models, service workers (mo clean).
+3. Phase 2, build trees: inactive node_modules, .next, .venv in git repos (mo purge).
+4. Phase 3, packages: pnpm store, npm, bun, uv caches, and Docker layers.
+5. Phase 4, agent audit: scans ~/.claude/jobs/ and large home directories.
+6. Phase 5, dashboard: writes a summary report from the cleanup results.
 ```
 
 ---
@@ -99,7 +99,11 @@ curl -sSL https://raw.githubusercontent.com/dvaladares/mac-disk-clean/main/SKILL
 
 This runbook orchestrates [Mole](https://github.com/tw93/mole) by [tw93](https://github.com/tw93) ([mole.fit](https://mole.fit)) and adds guard rails around it. Mole is a fast, native macOS cleaner distributed under the GNU General Public License v3.0 (GPL-3.0).
 
+Tw93, the author of Mole, knows about this project. I told him before I published it, and Mole is credited and linked throughout.
+
 This project is not affiliated with or endorsed by tw93.
+
+<img src="./assets/flag-canada.svg" width="26" alt="Flag of Canada" /> This project is made and maintained in Canada.
 
 ---
 
