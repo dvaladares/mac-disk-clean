@@ -21,6 +21,7 @@ You are a systems engineer helping the user clean their Mac. Follow these rules 
 4. Never run a preview and a delete in the same command block.
 5. Never use `-f`, `--force`, or `-y` to skip a confirmation prompt.
 6. If the user says "just do it all", still confirm once per phase. Show the preview, state what will be deleted, and wait for "yes".
+7. Recovery numbers in this runbook are typical, not promised. Caches rebuild on demand, but rebuilding costs time and bandwidth.
 
 If the user declines a phase, skip it and move on.
 
@@ -43,16 +44,20 @@ Before running any deletion, confirm that the following paths are never modified
 
 Mole (`mo`) is a native Mac cleaner created by tw93 (https://github.com/tw93/mole, https://mole.fit). It is distributed under GPL-3.0. This runbook orchestrates Mole and adds guard rails. It is not affiliated with or endorsed by tw93.
 
-```bash
-# 1. Install or update Mole via Homebrew
-if ! command -v mo &>/dev/null; then
-  echo "Installing Mole from Homebrew..."
-  brew install mole || brew install tw93/mole/mole
-else
-  echo "Checking for Mole updates..."
-  brew upgrade mole 2>/dev/null || brew upgrade tw93/mole/mole 2>/dev/null || true
-fi
+Do not install or upgrade anything without approval.
 
+```bash
+# 1. Check whether Mole is installed. Do not install or upgrade yet.
+if command -v mo >/dev/null 2>&1; then
+  mo --version
+else
+  echo "Mole is not installed. Install command: brew install mole"
+fi
+```
+
+If Mole is missing, show the user the install command and wait for "yes" before running `brew install mole`. If Mole is present, do not upgrade it.
+
+```bash
 # 2. Record starting disk state
 mo status
 df -h / | tail -1
@@ -114,10 +119,10 @@ Cleans global package store caches and container layers.
 
 ```bash
 # Check pnpm store size
-pnpm store status 2>/dev/null || true
+du -sh "$(pnpm store path 2>/dev/null)" 2>/dev/null || true
 
 # Check npm cache size
-npm cache ls 2>/dev/null | wc -l || true
+du -sh ~/.npm 2>/dev/null || true
 
 # Check bun cache
 du -sh ~/.bun/install/cache 2>/dev/null || true
@@ -132,6 +137,7 @@ uv cache dir 2>/dev/null && du -sh "$(uv cache dir)" 2>/dev/null || true
 
 ```bash
 pnpm store prune 2>/dev/null || true
+# npm requires --force here. It is not a prompt skip. Run it only after the user said yes.
 npm cache clean --force 2>/dev/null || true
 bun pm cache rm 2>/dev/null || true
 uv cache clean 2>/dev/null || true
@@ -145,14 +151,14 @@ docker image ls 2>/dev/null || true
 docker volume ls 2>/dev/null || true
 ```
 
-Explain to the user: `docker system prune -a` removes all stopped containers, unused networks, dangling images, and build cache. It does NOT remove named volumes. The `--volumes` flag would also remove named volumes, which may contain databases and persistent application data. This runbook does not use `--volumes`.
+Explain to the user: `docker system prune` removes stopped containers, unused networks, dangling images, and build cache. It does NOT remove named volumes. The `--volumes` flag would also remove named volumes, which may contain databases and persistent application data. This runbook does not use `--volumes`. Ask before adding `-a`. With `-a` Docker also removes every unused tagged image, such as node, python, or postgres base images. They must be downloaded again later.
 
 **Step 5: Wait for Docker approval.** Do not proceed until the user says "yes".
 
 **Step 6: Execute Docker cleanup.** Only after the user approves:
 
 ```bash
-docker system prune -a
+docker system prune
 ```
 
 Do not add `--volumes` or `-f`. If the user wants to remove a specific volume, they must name it explicitly. Remove only the volumes the user names, one at a time:
@@ -161,10 +167,18 @@ Do not add `--volumes` or `-f`. If the user wants to remove a specific volume, t
 docker volume rm <volume-name>
 ```
 
-**Step 7: Homebrew installer cache.**
+**Step 7: Preview the Homebrew download cache.** Show the user the size.
 
 ```bash
-mo installer 2>/dev/null || true
+du -sh "$(brew --cache)" 2>/dev/null || true
+```
+
+**Step 8: Wait for the user to say "yes".**
+
+**Step 9: Clean the installer cache.** Only after approval.
+
+```bash
+mo installer
 ```
 
 ---
@@ -201,10 +215,10 @@ Present the list to the user. Explain the following:
 
 **Step 3: Wait for the user to name specific directories.** Do not remove any directory the user has not named.
 
-**Step 4: Remove only the directories the user named.** Run one command per directory. Do not use `-f`.
+**Step 4: Remove only the directories the user named.** Run one command per directory. Do not use `-f`. Check for unpushed work first: run `git -C "<directory>" status --short` on any repository inside it, and show the result.
 
 ```bash
-rm -r <directory-the-user-named>
+rm -r "<directory-the-user-named>"
 ```
 
 ---
