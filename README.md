@@ -1,67 +1,68 @@
 # mac-disk-clean
 
-**The LLM-guided Mac disk cleaner. 50+ GB reclaimed safely, zero subscription required.**
-
-An autonomous, agentic runbook for developers who want to clean, audit, and optimize their Mac without paying for opaque commercial subscription cleaner apps. Powered by [tw93/mole](https://github.com/tw93/mole), with hardcoded safety whitelists for personal data and automated before/after HTML dashboard generation.
+A runbook that guides an AI coding assistant to clean a Mac safely, using Mole (mo) by tw93.
 
 ---
 
-## 📊 Live Interactive Dashboard
-
-Every cleanup session compiles a self-contained, dark-mode **HTML Telemetry Dashboard** and automatically opens it in your default browser:
-
-<p align="center">
-  <img src="./assets/dashboard-preview.png" alt="mac-disk-clean Interactive HTML Telemetry Dashboard" width="900" style="border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);" />
-</p>
+> **Read this before you run it**
+>
+> This runbook deletes files from your Mac. The AI assistant runs shell commands
+> on your machine. Before you start:
+>
+> - Make a Time Machine backup or another full backup first.
+> - Run every phase in dry-run (preview) mode first.
+> - Review the list of files the assistant shows you before approving any deletion.
+> - Nothing is recoverable after `rm`. There is no undo.
+> - You are responsible for what you approve.
+> - Use at your own risk.
 
 ---
 
 ## Why this exists
 
-Commercial Mac cleaners charge $40+/year subscriptions for basic cache purges while missing the modern cruft that actually eats developer storage:
+Commercial Mac cleaners charge subscription fees for basic cache removal. They miss the modern cruft that actually fills developer storage:
 
-- **Subagent Worktree Bloat:** Hundreds of gigabytes archived in `~/.claude/jobs/` or `~/.codex/`
-- **Stale Monorepo Build Trees:** Inactive `node_modules`, `.next`, `.venv`, and coverage folders across git worktrees
-- **Package Manager Stores:** Dangling virtual packages in `pnpm`, `bun`, `uv`, and `npm`
-- **Browser AI Models:** Hidden on-device LLM classifier weights in Chrome and Brave
+- **Agent worktree bloat.** Hundreds of gigabytes archived in `~/.claude/jobs/` or `~/.codex/`.
+- **Stale build trees.** Inactive `node_modules`, `.next`, `.venv`, and coverage folders across git worktrees.
+- **Package manager stores.** Dangling virtual packages in pnpm, bun, uv, and npm.
+- **Browser AI models.** Hidden on-device LLM classifier weights in Chrome and Brave.
 
-**mac-disk-clean** gives your AI assistant (Claude Code, Gemini, ChatGPT, Codex) a safe, systematic runbook to inspect, preview, and clean your Mac while **strictly protecting your personal data**.
-
-<p align="center">
-  <img src="./assets/claude-guide-preview.png" alt="Claude Code & Subagent Worktree Pruning Guide" width="900" style="border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);" />
-</p>
+This runbook gives your AI assistant (Claude Code, Gemini, ChatGPT, Codex, Antigravity) a safe, step-by-step process to inspect, preview, and clean your Mac. On my own Mac it reclaimed about 50 GB. Your result will differ.
 
 ---
 
-## 🔒 Cardinal Safety Guarantees
+## What it protects
 
-The runbook enforces strict protection gates before any deletion:
+The runbook enforces protection rules before any deletion.
 
-| Protected Data | Safety Policy |
+| Protected data | Policy |
 |---|---|
-| **iMessage History & Attachments** | 🛑 **NEVER** touched (`chat.db` & `~/Library/Messages/Attachments` preserved; only generated link thumbnails cleared) |
-| **iCloud Drive & Cloud Sync** | 🛑 **NEVER** touched (`~/Library/Mobile Documents` & `CloudStorage` whitelisted) |
-| **Photos Library** | 🛑 **NEVER** touched (`~/Pictures` & `*.photoslibrary` preserved) |
-| **Agent Memories & Skills** | 🛑 **NEVER** touched (`~/.claude/projects`, `~/.claude/skills`, `~/.gemini/config` preserved) |
+| iMessage history and attachments | Never touched. `chat.db` and `~/Library/Messages/Attachments` are preserved. Only auto-generated link thumbnails are cleared. |
+| iCloud Drive and cloud sync | Never touched. `~/Library/Mobile Documents` and `CloudStorage` are whitelisted. |
+| Photos library | Never touched. `~/Pictures` and `*.photoslibrary` are preserved. |
+| Agent memories and skills | Never touched. `~/.claude/projects`, `~/.claude/skills`, `~/.gemini/config` are preserved. |
 
 ---
 
-## 🚀 Quick Start (Drag & Drop)
+## Quick start
 
-### Method 1: Drop into any AI Chat
-Drag [`SKILL.md`](./SKILL.md) directly into **Claude Code, ChatGPT, Gemini, or Codex**, and tell it:
+### Method 1: Drop into any AI chat
+
+Drag [`SKILL.md`](./SKILL.md) into Claude Code, ChatGPT, Gemini, Codex, or Antigravity, and say:
+
 ```text
 Please execute this Mac Disk Cleanup runbook on my machine.
 ```
 
-### Method 2: Install as a Claude Code Skill
+### Method 2: Install as a Claude Code skill
+
 ```bash
-# Add directly to your Claude skills
 mkdir -p ~/.claude/skills/mac-disk-clean
 curl -sSL https://raw.githubusercontent.com/dvaladares/mac-disk-clean/main/SKILL.md > ~/.claude/skills/mac-disk-clean/SKILL.md
 ```
 
-### Method 3: Antigravity / agy CLI
+### Method 3: Install for agy / Antigravity
+
 ```bash
 mkdir -p ~/.gemini/config/skills/mac-disk-clean
 curl -sSL https://raw.githubusercontent.com/dvaladares/mac-disk-clean/main/SKILL.md > ~/.gemini/config/skills/mac-disk-clean/SKILL.md
@@ -69,26 +70,45 @@ curl -sSL https://raw.githubusercontent.com/dvaladares/mac-disk-clean/main/SKILL
 
 ---
 
-## 📋 What the Runbook Executes
+## What the runbook does
 
 ```
-1. Tooling Baseline     → Automatically checks & grabs the latest `tw93/mole` via Homebrew & records telemetry
-2. Phase 1: Caches      → User app caches, browser AI models, service workers (`mo clean`)
-3. Phase 2: Build Trees → Inactive node_modules, .next, .venv in git repos (`mo purge`)
-4. Phase 3: Packages    → pnpm virtual store, npm, bun, uv, and Docker VM layers
-5. Phase 4: Agent Audit → Scans ~/.claude/jobs/ and deep home directory storage
-6. Phase 5: Dashboard   → Automatically renders & opens an interactive HTML telemetry report
+1. Tooling baseline    - Checks and installs Mole (mo) via Homebrew, records starting disk state.
+2. Phase 1: Caches     - User app caches, browser AI models, service workers (mo clean).
+3. Phase 2: Build trees - Inactive node_modules, .next, .venv in git repos (mo purge).
+4. Phase 3: Packages   - pnpm store, npm, bun, uv caches, and Docker layers.
+5. Phase 4: Agent audit - Scans ~/.claude/jobs/ and large home directories.
+6. Phase 5: Dashboard  - Writes a summary report from the cleanup results.
 ```
 
 ---
 
-## 🙏 Credits & Upstream Engine
+## Screenshots
 
-This runbook orchestrates and builds upon the fast, native macOS utility [Mole](https://github.com/tw93/mole) created by [Tw93](https://github.com/tw93) ([mole.fit](https://mole.fit)). Mole is distributed under the GNU General Public License v3.0 (GPL-3.0).
+<p align="center">
+  <img src="./assets/dashboard-preview.png" alt="mac-disk-clean HTML Dashboard" width="900" />
+</p>
+
+<p align="center">
+  <img src="./assets/claude-guide-preview.png" alt="Claude Code guide preview" width="900" />
+</p>
 
 ---
 
-## ⚖️ License & Disclaimer
+## Credits
 
-- **License:** [MIT License](./LICENSE) · Copyright (c) 2026 Daniel Valadares
-- **Disclaimer:** All product names, logos, and brands are property of their respective owners. CleanMyMac is a trademark of MacPaw Inc. Mention of third-party products is solely for descriptive and comparative purposes.
+This runbook orchestrates [Mole](https://github.com/tw93/mole) by [tw93](https://github.com/tw93) ([mole.fit](https://mole.fit)) and adds guard rails around it. Mole is a fast, native macOS cleaner distributed under the GNU General Public License v3.0 (GPL-3.0).
+
+This project is not affiliated with or endorsed by tw93.
+
+---
+
+## Disclaimer and licence
+
+**No warranty.** This software is provided "as is", without warranty of any kind, express or implied. The author is not liable for data loss, damage, downtime, or any other harm, including if it breaks your Mac.
+
+This runbook is a set of instructions for an AI coding assistant. The assistant interprets and executes the instructions. The assistant can make mistakes. You are responsible for reviewing and approving every action.
+
+This project is not affiliated with Apple, MacPaw, or tw93. CleanMyMac is a trademark of MacPaw Inc. Mention of third-party products is for descriptive purposes only.
+
+**Licence:** [MIT License](./LICENSE), Copyright (c) 2026 Daniel Valadares. The MIT licence covers the runbook text only. Mole has its own GPL-3.0 licence.
